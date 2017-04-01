@@ -23,12 +23,6 @@ class Grid:
 				self.add_note(pos, pitch, duration)
 				i += 1
 
-	def melody(self, pitch, position):
-		pitch = pitch.grid
-		position = position.grid
-		pitch.grid = [0,]
-		position.grid = [position]
-
 	def convert_to_MIDI(self, title):
 		mf = MIDIFile(1, adjust_origin=False)
 		track = 0
@@ -50,5 +44,5 @@ class Grid:
 
 g = Grid(96)
 g.populate_random()
-g.convert_to_MIDI("test.mid")
+g.convert_to_MIDI("../outputs/test.mid")
 print("done")
