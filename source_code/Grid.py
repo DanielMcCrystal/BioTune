@@ -63,6 +63,6 @@ class Grid:
 							next_cell = self.grid[pos + duration][pitch]
 						else:
 							next_cell = None
-					mf.addNote(0, 0, pitch + self.lowest_note, pos, duration, 80)
+					mf.addNote(0, 0, pitch + self.lowest_note, pos, duration, 70)
 		with open(title, 'wb') as outf:
 			mf.writeFile(outf)

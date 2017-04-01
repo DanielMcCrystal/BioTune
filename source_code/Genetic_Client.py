@@ -10,21 +10,29 @@ class Genetic_Client:
 		self.population = [[None for i in range(2)] for j in range(population_size)]
 		self.tops = []
 		for i in range(population_size):
-			grid = Grid(48)
+			grid = Grid(12)
 			grid.populate_random()
 			self.population[i][0] = grid
-			self.population[i][1] = self.chord_fitness(grid)
+			self.population[i][1] = self.fitness(grid)
 
 	# Determine the fitness of a particular chord specimen
-	def chord_fitness(self, specimen):
+	def fitness(self, specimen):
 		grid = specimen.grid
 		fitness = 1.0
 
 		col_chords = [None] * specimen.num_notes
 
-		# Tier 1 (Individual Columns)
+		# Tier 1 setup
 		last_chord = None
-		scores = []
+		scores1 = []
+
+		# Tier 3 setup
+		expected = 4
+		sd = 1
+		max_score = utils.norm_pdf(expected, expected, sd)
+		scores3 = []
+
+		# Tiers 1 and 3
 		for col in range(specimen.num_notes):
 			# generate list of notes in chord
 			notes_in_col = []
@@ -49,39 +57,32 @@ class Genetic_Client:
 						count += 1
 				ratios[chord] = float(count) / len(notes_in_col)
 			best_ratio = max(ratios)
-			scores.append(best_ratio)
+			scores1.append(best_ratio)
 			best_chord = possible_chords[ratios.index(best_ratio)]
 			col_chords[col] = best_chord
 			last_chord = best_chord
-		multiplier = (utils.geometric_mean(scores) * 2) ** 3
-		fitness *= multiplier
+
+			# Do Tier 3 stuff
+			count = len(notes_in_col)
+			scores3.append(utils.norm_pdf(count, expected, sd))
+
+		multiplier1 = (utils.geometric_mean(scores1) * 2) ** 4
+		fitness *= multiplier1
+		multiplier3 = utils.geometric_mean(scores3) * 2
+		fitness *= multiplier3
 
 		# Tier 2 (Chord Changing)
 		chord_sequence = utils.compact_chord_cols(col_chords)
-		scores = [None] * len(chord_sequence)
+		scores2 = [None] * len(chord_sequence)
 		expected = 8
 		sd = 4
 		max_score = utils.norm_pdf(expected, expected, sd)
 		for i in range(len(chord_sequence)):
 			chord = chord_sequence[i]
-			scores[i] = utils.norm_pdf(chord[1], expected, sd) / max_score
+			scores2[i] = utils.norm_pdf(chord[1], expected, sd) / max_score
 
-		multiplier = utils.geometric_mean(scores) * 2
-		fitness *= multiplier
-
-		# Tier 3 (Overlap)
-		expected = 4
-		sd = 1
-		scores = [None] * specimen.num_notes
-		max_score = utils.norm_pdf(expected, expected, sd)
-		for col in range(specimen.num_notes):
-			count = 0
-			for pitch in range(specimen.note_range):
-				if grid[col][pitch] is not None:
-					count += 1
-			scores[col] = utils.norm_pdf(count, expected, sd)
-		multiplier = utils.geometric_mean(scores) * 2
-		fitness *= multiplier
+		multiplier2 = utils.geometric_mean(scores2) * 2
+		fitness *= multiplier2
 
 		# Tier 4 (Key)
 		keys = [None] * 24
@@ -116,7 +117,7 @@ class Genetic_Client:
 		deaths = range(int(len(self.population) / 2))
 		offsprings = [self.offspring(self.population[i][0]) for i in survivors]
 		for i in deaths:
-			self.population[i] = [offsprings[i], self.chord_fitness(offsprings[i])]
+			self.population[i] = [offsprings[i], self.fitness(offsprings[i])]
 		print("Simulated gen " + str(self.generation))
 		self.generation = self.generation + 1
 
@@ -136,7 +137,7 @@ class Genetic_Client:
 		for pos in range(specimen.num_notes):
 			for pitch  in range(specimen.note_range):
 				if grid[pos][pitch]:
-					if random.random() < .1:
+					if random.random() < 0.05:
 						pos_movement = random.randint(-3, 3)
 						if pos + pos_movement < 0 or pos + pos_movement >= specimen.num_notes:
 							pos_movement = 0
@@ -154,7 +155,7 @@ class Genetic_Client:
 
 if __name__ == '__main__':
 	gc = Genetic_Client(200)
-	# gc.population[0][0].convert_to_MIDI("../outputs/start.mid")
+	gc.population[0][0].convert_to_MIDI("../outputs/start.mid")
 	inpt = input("How many generations should I simulate? ")
 	while(inpt != "done"):
 		gc.tops += [None] * int(inpt)
