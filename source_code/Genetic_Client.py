@@ -1,6 +1,6 @@
 
 import code.Utils as utils
-import random
+
 class Genetic_Client:
 	# Start with an initial population of variable size
 	def __init__(self, population_size):
@@ -65,27 +65,8 @@ class Genetic_Client:
 		pass
 
 	# Generate an offspring of a particular specimen with random mutations
-	# Duplicate grid
-	# Make mutations
 	def offspring(self, specimen):
-		grid = specimen.grid
-		for pos in range(specimen.grid):
-			if specimen.grid:
-
-
-		if random.random() < .0001:
-			specimen.grid = True
-		else:
-			specimen.grid = False
-		if specimen.grid:
-			pass
-
-
-
-
-
-
-
+		pass
 
 
 if __name__ == '__main__':

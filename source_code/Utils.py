@@ -1,3 +1,4 @@
+import math
 
 def notes_equal(a, b):
 	return a % 12 == b % 12
@@ -31,3 +32,24 @@ def geometric_mean(set):
 	for item in set:
 		prod *= item
 	return prod ** (1 / float(len(set)))
+
+def compact_chord_cols(chords):
+	compact = []
+	last = None
+	count = 0
+	for chord in chords:
+		count += 1
+		if not chord == last:
+			if last is not None:
+				compact.append([last, count])
+			last = chord
+			count = 0
+	count += 1
+	compact.append([last, count])
+	return compact
+
+def norm_pdf(x, mean, sd):
+	var = float(sd) ** 2
+	denom = math.sqrt(2 * math.pi * var)
+	num = math.exp(-(float(x) - float(mean)) ** 2 / (2 * var))
+	return num / denom

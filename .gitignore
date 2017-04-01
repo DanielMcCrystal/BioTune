@@ -92,4 +92,4 @@ ENV/
 .idea/
 .DS_Store
 outputs/
-code/notepad.py
+source_code/notepad.py
