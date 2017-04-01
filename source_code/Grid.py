@@ -10,10 +10,23 @@ class Grid:
 		self.note_range = len(self.grid[0])
 		self.lowest_note = 48
 
-	def add_note(self, position, pitch, duration):
-		self.grid[position][pitch] = True
+	def add_note(self, pos, pitch, duration):
+		self.grid[pos][pitch] = True
 		for i in range(duration-1):
-			self.grid[position+1+i][pitch] = False
+			self.grid[pos+1+i][pitch] = False
+
+	def remove_note(self, pos, pitch):
+		if not self.grid[pos, pitch]:
+			return
+		duration = 1
+		next_cell = self.grid[pos + duration][pitch]
+		while next_cell is not None and not next_cell:
+			duration += 1
+			if pos + duration < self.num_notes:
+				next_cell = self.grid[pos + duration][pitch]
+				self.grid[pos + duration][pitch] = None
+			else:
+				next_cell = None
 
 	def populate_random(self):
 		i = 0

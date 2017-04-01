@@ -1,5 +1,6 @@
-
-import code.Utils as utils
+import random,
+import source_code.Utils as utils
+from source_code.Grid import Grid
 
 class Genetic_Client:
 	# Start with an initial population of variable size
@@ -66,7 +67,25 @@ class Genetic_Client:
 
 	# Generate an offspring of a particular specimen with random mutations
 	def offspring(self, specimen):
-		pass
+		grid = specimen.grid
+		offspring = [list(col) for col in list(grid)]
+		for pos in range(grid.num_notes):
+			for pitch  in range(grid.note_range):
+				if grid[pos][pitch]:
+					if random.random() < .0001:
+						pos_movement = random.randint(-2, 2)
+						if pos + pos_movement < 0 or pos + pos_movement >= grid.num_notes:
+							pos_movement = 0
+						pitch_movement = random.randint(-2, 2)
+						if pitch + pitch_movement < 0 or pitch + pitch_movement >= grid.note_range:
+							pitch_movement = 0
+						new_duration = random.randint(1, 16)
+						if pos + pos_movement + new_duration >= grid.num_notes - 1:
+							new_duration = 1
+						offspring.remove_note(pos, pitch)
+						offspring.add_note(pos + pos_movement, pitch + pitch_movement, new_duration)
+
+		return offspring
 
 
 if __name__ == '__main__':
