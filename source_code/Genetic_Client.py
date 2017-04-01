@@ -1,7 +1,7 @@
 import random
 import source_code.Utils as utils
 from source_code.Grid import Grid
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 class Genetic_Client:
 	# Start with an initial population of variable size
@@ -10,7 +10,7 @@ class Genetic_Client:
 		self.population = [[None for i in range(2)] for j in range(population_size)]
 		self.tops = []
 		for i in range(population_size):
-			grid = Grid(12)
+			grid = Grid(24)
 			grid.populate_random()
 			self.population[i][0] = grid
 			self.population[i][1] = self.fitness(grid)
@@ -109,10 +109,10 @@ class Genetic_Client:
 	# Repopulate with offspring of top 50%
 	def darwin(self):
 		self.population = sorted(self.population, key=lambda x: x[1])
-		print("Top fitness: " + str(self.population[len(self.population)-1][1]))
-		self.tops[self.generation] = self.population[len(self.population)-1][1]
-		avg = self.avg_fitness()
-		print("Average fitness: " + str(avg))
+		#print("Top fitness: " + str(self.population[len(self.population)-1][1]))
+		#self.tops[self.generation] = self.best_fitness()
+		#avg = self.avg_fitness()
+		#print("Average fitness: " + str(avg))
 		survivors = range(int(len(self.population) / 2), len(self.population))
 		deaths = range(int(len(self.population) / 2))
 		offsprings = [self.offspring(self.population[i][0]) for i in survivors]
@@ -127,6 +127,9 @@ class Genetic_Client:
 			sum += individual[1]
 		return sum / len(self.population)
 
+	def best_fitness(self):
+		return self.population[len(self.population) - 1][1]
+
 	def best_individual(self):
 		return self.population[len(self.population)-1][0]
 
@@ -134,10 +137,14 @@ class Genetic_Client:
 	def offspring(self, specimen):
 		grid = specimen.grid
 		offspring = specimen.copy()
+		n = random.randint(1, specimen.note_count)
+		track = 0
+		done = False
 		for pos in range(specimen.num_notes):
 			for pitch  in range(specimen.note_range):
 				if grid[pos][pitch]:
-					if random.random() < 0.05:
+					track += 1
+					if track == n:
 						pos_movement = random.randint(-3, 3)
 						if pos + pos_movement < 0 or pos + pos_movement >= specimen.num_notes:
 							pos_movement = 0
@@ -149,6 +156,10 @@ class Genetic_Client:
 							new_duration = 1
 						offspring.remove_note(pos, pitch)
 						offspring.add_note(pos + pos_movement, pitch + pitch_movement, new_duration)
+						done = True
+						break
+			if done:
+				break
 
 		return offspring
 
@@ -156,12 +167,14 @@ class Genetic_Client:
 if __name__ == '__main__':
 	gc = Genetic_Client(200)
 	gc.population[0][0].convert_to_MIDI("../outputs/start.mid")
-	inpt = input("How many generations should I simulate? ")
-	while(inpt != "done"):
-		gc.tops += [None] * int(inpt)
-		for i in range(int(inpt)):
-			gc.darwin()
-		inpt = input("How many generations should I simulate? ")
+	#inpt = input("How many generations should I simulate? ")
+	while(gc.best_fitness() < 10.0):
+		#gc.tops += [None] * int(inpt)
+		gc.darwin()
+		#for i in range(int(inpt)):
+		#	gc.darwin()
+		#inpt = input("How many generations should I simulate? ")
+	print("Fitness: " + str(gc.best_fitness()))
 	gc.best_individual().convert_to_MIDI("../outputs/best.mid")
-	plt.plot(gc.tops)
-	plt.show()
+	#plt.plot(gc.tops)
+	#plt.show()
