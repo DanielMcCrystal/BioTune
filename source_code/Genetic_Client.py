@@ -1,5 +1,5 @@
 
-import code.Utils as utils
+import source_code.Utils as utils
 
 class Genetic_Client:
 	# Start with an initial population of variable size
@@ -17,7 +17,7 @@ class Genetic_Client:
 
 		# Tier 1 (Individual Columns)
 		last_chord = None
-		tier_1_scores = []
+		scores = []
 		for col in range(specimen.num_notes):
 			# generate list of notes in chord
 			notes_in_col = []
@@ -42,15 +42,30 @@ class Genetic_Client:
 						count += 1
 				ratios[chord] = float(count) / len(notes_in_col)
 			best_ratio = max(ratios)
-			tier_1_scores.append(best_ratio)
+			scores.append(best_ratio)
 			best_chord = possible_chords[ratios.index(best_ratio)]
 			col_chords[col] = best_chord
 			last_chord = best_chord
-		multiplier = utils.geometric_mean(tier_1_scores) * 2
+		multiplier = utils.geometric_mean(scores) * 2
 		print(multiplier)
 		fitness *= multiplier
 
 		# Tier 2 (Chord Changing)
+		chord_sequence = utils.compact_chord_cols(col_chords)
+		scores = [None] * len(chord_sequence)
+		expected = 8
+		sd = 4
+		max_score = utils.norm_pdf(expected, expected, sd)
+		for i in range(len(chord_sequence)):
+			chord = chord_sequence[i]
+			scores[i] = utils.norm_pdf(chord[1], expected, sd) / max_score
+
+		multiplier = utils.geometric_mean(scores) * 2
+		print(multiplier)
+		fitness *= multiplier
+
+		# Tier 3
+
 
 
 		return fitness

@@ -1,7 +1,7 @@
 from midiutil.MidiFile import MIDIFile
 import random
-from code.Genetic_Client import Genetic_Client
-import code.Utils as utils
+from source_code.Genetic_Client import Genetic_Client
+import source_code.Utils as utils
 
 class Grid:
 	def __init__(self, length):
@@ -38,16 +38,22 @@ class Grid:
 					next_cell = self.grid[pos + duration][pitch]
 					while next_cell is not None and not next_cell:
 						duration += 1
-						next_cell = self.grid[pos + duration][pitch]
+						if pos + duration < self.num_notes:
+							next_cell = self.grid[pos + duration][pitch]
+						else:
+							next_cell = None
 					mf.addNote(0, 0, pitch + self.lowest_note, pos, duration, 80)
 		with open(title, 'wb') as outf:
 			mf.writeFile(outf)
 
 if __name__ == '__main__':
 	g = Grid(96)
-	notes = utils.get_triad(0, 0)
-	for note in notes:
-		g.add_note(0, note, 2)
+	g.populate_random()
+	'''
+	chord = utils.get_triad(10, 0)
+	for note in chord:
+		g.add_note(0, note, 8)
+	'''
 	g.convert_to_MIDI("../outputs/test.mid")
 	gc = Genetic_Client(1)
 	print(gc.chord_fitness(g))
