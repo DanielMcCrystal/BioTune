@@ -90,4 +90,6 @@ ENV/
 
 # Extra
 .idea/
+.DS_Store
+outputs/
 code/notepad.py
