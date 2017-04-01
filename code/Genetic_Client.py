@@ -1,4 +1,4 @@
-from .Grid import Grid
+
 import code.Utils as utils
 
 class Genetic_Client:
@@ -10,21 +10,21 @@ class Genetic_Client:
 
 	# Determine the fitness of a particular chord specimen
 	def chord_fitness(self, specimen):
-		grid = specimen
-		fitness = 1
+		grid = specimen.grid
+		fitness = 1.0
 
-		col_chords = [None * grid.num_notes]
+		col_chords = [None] * specimen.num_notes
 
 		# Tier 1 (Individual Columns)
 		last_chord = None
 		tier_1_scores = []
-		for col in range(grid.num_notes):
+		for col in range(specimen.num_notes):
 			# generate list of notes in chord
 			notes_in_col = []
-			for i in range(grid.note_range):
+			for i in range(specimen.note_range):
 				if grid[col][i] is not None:
 					notes_in_col.append(i)
-			if len(notes_in_col == 0):
+			if len(notes_in_col) == 0:
 				continue
 			lowest_note = notes_in_col[0]
 
@@ -34,20 +34,24 @@ class Genetic_Client:
 				possible_chords.append(last_chord)
 
 			# find the ratio of notes in each chord
-			ratios = [None * len(possible_chords)]
+			ratios = [None] * len(possible_chords)
 			for chord in range(len(possible_chords)):
 				count = 0
 				for note in notes_in_col:
 					if utils.note_in_set(note, possible_chords[chord]):
 						count += 1
-				ratios[chord] = count / len(notes_in_col)
+				ratios[chord] = float(count) / len(notes_in_col)
 			best_ratio = max(ratios)
 			tier_1_scores.append(best_ratio)
 			best_chord = possible_chords[ratios.index(best_ratio)]
 			col_chords[col] = best_chord
 			last_chord = best_chord
 		multiplier = utils.geometric_mean(tier_1_scores) * 2
+		print(multiplier)
 		fitness *= multiplier
+
+		# Tier 2 (Chord Changing)
+
 
 		return fitness
 

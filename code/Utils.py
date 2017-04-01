@@ -16,8 +16,11 @@ def get_triad(pitch, type):
 	elif type == 3: # diminished
 		triad.append(pitch + 3)
 		triad.append(pitch + 6)
+	return triad
 
 def note_in_set(pitch, set):
+	if set is None:
+		return False
 	for note in set:
 		if notes_equal(pitch, note):
 			return True
