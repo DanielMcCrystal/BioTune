@@ -6,9 +6,19 @@ class Genetic_Client:
 		self.generation = 1
 		pass
 
-	# Determine the fitness of a particular specimen
-	def fitness(self, specimen):
-		pass
+	# Determine the fitness of a particular chord specimen
+	def chord_fitness(self, specimen):
+		grid = specimen
+		fitness = 1
+
+		# Tier 1 (Individual Columns)
+		last_chord = None
+		for col in range(grid.num_notes):
+			possible_chords = []
+			if last_chord is not None:
+				possible_chords.append(last_chord)
+
+		return fitness
 
 	# Calculate fitness of each specimen in the population
 	# Print top fitness, average fitness
