@@ -18,7 +18,10 @@ class Grid:
 		return copied
 
 	def add_note(self, pos, pitch, duration):
-		self.grid[pos][pitch] = True
+		if self.grid[pos][pitch]:
+			self.note_count -= 1
+		else:
+			self.grid[pos][pitch] = True
 		for i in range(duration-1):
 			new_pos = pos + 1 + i
 			if new_pos >= self.num_notes or self.grid[new_pos][pitch] is not None:
@@ -53,11 +56,12 @@ class Grid:
 				self.add_note(pos, pitch, duration)
 				i += 1
 
-	def populate_random_melody(self):
+	def populate_random_melody(self, col_chords):
 		pos = 0
 		while pos < self.num_notes:
 			pitch = random.randint(0, self.note_range-1)
 			duration = random.randint(1, 6)
+			active_chord = col_chords[pos]
 
 
 	def convert_to_MIDI(self, title):

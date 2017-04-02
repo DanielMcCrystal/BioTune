@@ -31,6 +31,26 @@ def is_chord_in_key(chord, key): # key is a list of chords
 			return True
 	return False
 
+def get_scale(chord):
+	first = chord[0]
+	third = chord[1]
+
+	if notes_equal(first + 4, third): # major
+		pattern = 'wwhwww'
+	else: # minor
+		pattern = 'whwwhw'
+
+	scale = [None] * 7
+	scale[0] = first
+	note = first
+	for i in range(len(pattern)):
+		if pattern[i] == 'w':
+			note += 2
+		else:
+			note += 1
+		scale[i+1] = note
+	return scale
+
 def chords_equal(chord1, chord2):
 	for note in chord1:
 		if not note_in_set(note, chord2):
@@ -52,7 +72,7 @@ def chords_in_key(pitch, type):
 	for i in range(len(scale_pattern)):
 		if scale_pattern[i] == 'w':
 			note += 2
-		elif scale_pattern[i] == 'h':
+		else:
 			note += 1
 		chords[i + 1] = get_triad(note, type_pattern[i])
 	return chords

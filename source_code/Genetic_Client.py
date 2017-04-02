@@ -66,7 +66,7 @@ class Genetic_Client:
 			count = len(notes_in_col)
 			scores3.append(utils.norm_pdf(count, expected, sd) / max_score)
 
-		multiplier1 = (utils.geometric_mean(scores1) * 2) ** 3
+		multiplier1 = (utils.geometric_mean(scores1) * 2) ** 4
 		fitness *= multiplier1
 		multiplier3 = utils.geometric_mean(scores3) * 2
 		fitness *= multiplier3
@@ -98,7 +98,7 @@ class Genetic_Client:
 			if count > max_count:
 				max_count = count
 		ratio = max_count / len(chord_sequence)
-		multiplier = (ratio * 2) ** 3
+		multiplier = (ratio * 2) ** 2
 		fitness *= multiplier
 
 		return fitness
@@ -137,6 +137,13 @@ class Genetic_Client:
 	def offspring(self, specimen):
 		grid = specimen.grid
 		offspring = specimen.copy()
+		mutation = random.random()
+		if mutation < 0.05: # add new note
+			pos = random.randint(0, offspring.num_notes - 1)
+			pitch = random.randint(0, offspring.note_range - 1)
+			duration = random.randint(2, 6)
+			offspring.add_note(pos, pitch, duration)
+			return offspring
 		n = random.randint(1, specimen.note_count)
 		track = 0
 		done = False
@@ -145,15 +152,16 @@ class Genetic_Client:
 				if grid[pos][pitch]:
 					track += 1
 					if track == n:
-						pos_movement = random.randint(-3, 3)
-						if pos + pos_movement < 0 or pos + pos_movement >= specimen.num_notes:
-							pos_movement = 0
-						pitch_movement = random.randint(-5, 5)
-						if pitch + pitch_movement < 0 or pitch + pitch_movement >= specimen.note_range:
-							pitch_movement = 0
-						new_duration = random.randint(2, 6)
-						offspring.remove_note(pos, pitch)
-						offspring.add_note(pos + pos_movement, pitch + pitch_movement, new_duration)
+						offspring.remove_note(pos, pitch) # 10% chance to only remove note
+						if mutation < 0.95: # move note
+							pos_movement = random.randint(-3, 3)
+							if pos + pos_movement < 0 or pos + pos_movement >= specimen.num_notes:
+								pos_movement = 0
+							pitch_movement = random.randint(-5, 5)
+							if pitch + pitch_movement < 0 or pitch + pitch_movement >= specimen.note_range:
+								pitch_movement = 0
+							new_duration = random.randint(2, 6)
+							offspring.add_note(pos + pos_movement, pitch + pitch_movement, new_duration)
 						done = True
 						break
 			if done:
@@ -163,9 +171,8 @@ class Genetic_Client:
 
 
 if __name__ == '__main__':
-	gc = Genetic_Client(200)
+	gc = Genetic_Client(100)
 	gc.population[0][0].convert_to_MIDI("../outputs/start.mid")
-	print(gc.population[0][0].note_count)
 	inpt = input("How many generations should I simulate? ")
 	while not inpt == 'done':
 		gc.tops += [None] * int(inpt)
