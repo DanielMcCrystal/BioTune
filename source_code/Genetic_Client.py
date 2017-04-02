@@ -164,7 +164,7 @@ class Genetic_Client:
 				if grid[pos][pitch]:
 					track += 1
 					if track == n:
-						offspring.remove_note(pos, pitch) # 10% chance to only remove note
+						offspring.remove_note(pos, pitch) # 5% chance to only remove note
 						if mutation < 0.95: # move note
 							pos_movement = random.randint(-3, 3)
 							if pos + pos_movement < 0 or pos + pos_movement >= specimen.num_notes:
@@ -188,7 +188,6 @@ if __name__ == '__main__':
 	inpt = input("How many generations should I simulate? ")
 	while not inpt == 'done':
 		gc.tops += [None] * int(inpt)
-		#gc.darwin()
 		for i in range(int(inpt)):
 			gc.darwin()
 		inpt = input("How many generations should I simulate? ")
