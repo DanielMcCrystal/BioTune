@@ -20,9 +20,10 @@ class Grid:
 	def add_note(self, pos, pitch, duration):
 		self.grid[pos][pitch] = True
 		for i in range(duration-1):
-			if self.grid[pos + 1 + i][pitch] is not None:
+			new_pos = pos + 1 + i
+			if new_pos >= self.num_notes or self.grid[new_pos][pitch] is not None:
 				break
-			self.grid[pos+1+i][pitch] = False
+			self.grid[new_pos][pitch] = False
 		self.note_count += 1
 
 	def remove_note(self, pos, pitch):
@@ -42,15 +43,22 @@ class Grid:
 				next_cell = None
 		self.note_count -= 1
 
-	def populate_random(self):
+	def populate_random_chords(self):
 		i = 0
 		while i < self.num_notes * 2:
 			pos = random.randint(0, self.num_notes-1)
 			pitch = random.randint(0, self.note_range-1)
-			duration = random.randint(4, 12)
+			duration = random.randint(2, 6)
 			if self.grid[pos][pitch] is None and pos + duration < self.num_notes:
 				self.add_note(pos, pitch, duration)
 				i += 1
+
+	def populate_random_melody(self):
+		pos = 0
+		while pos < self.num_notes:
+			pitch = random.randint(0, self.note_range-1)
+			duration = random.randint(1, 6)
+
 
 	def convert_to_MIDI(self, title):
 		mf = MIDIFile(1, adjust_origin=False)
@@ -71,6 +79,6 @@ class Grid:
 							next_cell = self.grid[pos + duration][pitch]
 						else:
 							next_cell = None
-					mf.addNote(0, 0, pitch + self.lowest_note, pos, duration, 70)
+					mf.addNote(0, 0, pitch + self.lowest_note, pos, duration, 60)
 		with open(title, 'wb') as outf:
 			mf.writeFile(outf)

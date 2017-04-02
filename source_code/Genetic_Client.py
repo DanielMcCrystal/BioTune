@@ -1,7 +1,7 @@
 import random
 import source_code.Utils as utils
 from source_code.Grid import Grid
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 class Genetic_Client:
 	# Start with an initial population of variable size
@@ -11,12 +11,12 @@ class Genetic_Client:
 		self.tops = []
 		for i in range(population_size):
 			grid = Grid(24)
-			grid.populate_random()
+			grid.populate_random_chords()
 			self.population[i][0] = grid
-			self.population[i][1] = self.fitness(grid)
+			self.population[i][1] = self.chord_fitness(grid)
 
 	# Determine the fitness of a particular chord specimen
-	def fitness(self, specimen):
+	def chord_fitness(self, specimen):
 		grid = specimen.grid
 		fitness = 1.0
 
@@ -64,9 +64,9 @@ class Genetic_Client:
 
 			# Do Tier 3 stuff
 			count = len(notes_in_col)
-			scores3.append(utils.norm_pdf(count, expected, sd))
+			scores3.append(utils.norm_pdf(count, expected, sd) / max_score)
 
-		multiplier1 = (utils.geometric_mean(scores1) * 2) ** 4
+		multiplier1 = (utils.geometric_mean(scores1) * 2) ** 3
 		fitness *= multiplier1
 		multiplier3 = utils.geometric_mean(scores3) * 2
 		fitness *= multiplier3
@@ -74,8 +74,8 @@ class Genetic_Client:
 		# Tier 2 (Chord Changing)
 		chord_sequence = utils.compact_chord_cols(col_chords)
 		scores2 = [None] * len(chord_sequence)
-		expected = 8
-		sd = 4
+		expected = 4
+		sd = 2
 		max_score = utils.norm_pdf(expected, expected, sd)
 		for i in range(len(chord_sequence)):
 			chord = chord_sequence[i]
@@ -98,7 +98,7 @@ class Genetic_Client:
 			if count > max_count:
 				max_count = count
 		ratio = max_count / len(chord_sequence)
-		multiplier = ratio * 2
+		multiplier = (ratio * 2) ** 3
 		fitness *= multiplier
 
 		return fitness
@@ -108,16 +108,16 @@ class Genetic_Client:
 	# Kill bottom 50%
 	# Repopulate with offspring of top 50%
 	def darwin(self):
-		self.population = sorted(self.population, key=lambda x: x[1])
-		#print("Top fitness: " + str(self.population[len(self.population)-1][1]))
-		#self.tops[self.generation] = self.best_fitness()
-		#avg = self.avg_fitness()
-		#print("Average fitness: " + str(avg))
-		survivors = range(int(len(self.population) / 2), len(self.population))
-		deaths = range(int(len(self.population) / 2))
-		offsprings = [self.offspring(self.population[i][0]) for i in survivors]
-		for i in deaths:
-			self.population[i] = [offsprings[i], self.fitness(offsprings[i])]
+		self.population.sort(key=lambda x: x[1])
+		print("Top fitness: " + str(self.best_fitness()))
+		self.tops[self.generation] = self.best_fitness()
+		avg = self.avg_fitness()
+		print("Average fitness: " + str(avg))
+		half = int(len(self.population) / 2)
+		survivors = range(half, len(self.population))
+		for i in survivors:
+			offspring = self.offspring(self.population[i][0])
+			self.population[i-half] = [offspring, self.chord_fitness(offspring)]
 		print("Simulated gen " + str(self.generation))
 		self.generation = self.generation + 1
 
@@ -151,9 +151,7 @@ class Genetic_Client:
 						pitch_movement = random.randint(-5, 5)
 						if pitch + pitch_movement < 0 or pitch + pitch_movement >= specimen.note_range:
 							pitch_movement = 0
-						new_duration = random.randint(1, 8)
-						if pos + pos_movement + new_duration >= specimen.num_notes - 1:
-							new_duration = 1
+						new_duration = random.randint(2, 6)
 						offspring.remove_note(pos, pitch)
 						offspring.add_note(pos + pos_movement, pitch + pitch_movement, new_duration)
 						done = True
@@ -167,14 +165,16 @@ class Genetic_Client:
 if __name__ == '__main__':
 	gc = Genetic_Client(200)
 	gc.population[0][0].convert_to_MIDI("../outputs/start.mid")
-	#inpt = input("How many generations should I simulate? ")
-	while(gc.best_fitness() < 10.0):
-		#gc.tops += [None] * int(inpt)
-		gc.darwin()
-		#for i in range(int(inpt)):
-		#	gc.darwin()
-		#inpt = input("How many generations should I simulate? ")
+	print(gc.population[0][0].note_count)
+	inpt = input("How many generations should I simulate? ")
+	while not inpt == 'done':
+		gc.tops += [None] * int(inpt)
+		#gc.darwin()
+		for i in range(int(inpt)):
+			gc.darwin()
+		inpt = input("How many generations should I simulate? ")
 	print("Fitness: " + str(gc.best_fitness()))
 	gc.best_individual().convert_to_MIDI("../outputs/best.mid")
-	#plt.plot(gc.tops)
-	#plt.show()
+	print(gc.best_individual().note_count)
+	plt.plot(gc.tops)
+	plt.show()
