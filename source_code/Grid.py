@@ -11,6 +11,7 @@ class Grid:
 		self.note_range = len(self.grid[0])
 		self.lowest_note = 48
 		self.note_count = 0
+		self.col_chords = None
 
 	def copy(self):
 		copied = Grid(self.num_notes, grid = [list(col) for col in list(self.grid)])
@@ -18,6 +19,8 @@ class Grid:
 		return copied
 
 	def add_note(self, pos, pitch, duration):
+		if pos < 0 or pos >= self.num_notes or pitch < 0 or pitch >= self.note_range:
+			return
 		if self.grid[pos][pitch]:
 			self.note_count -= 1
 		else:
@@ -56,12 +59,25 @@ class Grid:
 				self.add_note(pos, pitch, duration)
 				i += 1
 
-	def populate_random_melody(self, col_chords):
+	def populate_random_melody(self):
 		pos = 0
+		active_chord = self.col_chords[0]
+		active_scale = utils.get_double_scale(active_chord)
+		scale_index = 7
 		while pos < self.num_notes:
-			pitch = random.randint(0, self.note_range-1)
-			duration = random.randint(1, 6)
-			active_chord = col_chords[pos]
+			if active_chord is not None:
+				if not self.col_chords[pos] == active_chord:
+					active_chord = self.col_chords[pos]
+					active_scale = utils.get_double_scale(active_chord)
+				duration = random.randint(1, 6)
+				self.add_note(pos, active_scale[scale_index], duration)
+				pos += duration
+				change = random.randint(-3, 3)
+				if scale_index + change < 0 or scale_index + change >= len(active_scale):
+					change = -change
+				scale_index += change
+			else:
+				pos += 1
 
 
 	def convert_to_MIDI(self, title):

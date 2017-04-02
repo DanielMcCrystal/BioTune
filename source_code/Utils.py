@@ -31,7 +31,9 @@ def is_chord_in_key(chord, key): # key is a list of chords
 			return True
 	return False
 
-def get_scale(chord):
+def get_double_scale(chord):
+	if chord is None:
+		return None
 	first = chord[0]
 	third = chord[1]
 
@@ -49,7 +51,7 @@ def get_scale(chord):
 		else:
 			note += 1
 		scale[i+1] = note
-	return scale
+	return scale + [note + 12 for note in scale]
 
 def chords_equal(chord1, chord2):
 	for note in chord1:

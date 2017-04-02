@@ -9,11 +9,22 @@ class Genetic_Client:
 		self.generation = 0
 		self.population = [[None for i in range(2)] for j in range(population_size)]
 		self.tops = []
+		self.expected_note_overlap = 4
+		self.sd_note_overlap = 1
+		expected = self.expected_note_overlap
+		sd = self.sd_note_overlap
+		self.max_note_overlap_score = utils.norm_pdf(expected, expected, sd)
+		self.expected_chord_length = 4
+		self.sd_chord_length = 2
+		expected = self.expected_chord_length
+		sd = self.sd_chord_length
+		self.max_chord_length_score = utils.norm_pdf(expected, expected, sd)
 		for i in range(population_size):
-			grid = Grid(24)
+			grid = Grid(32)
 			grid.populate_random_chords()
 			self.population[i][0] = grid
 			self.population[i][1] = self.chord_fitness(grid)
+
 
 	# Determine the fitness of a particular chord specimen
 	def chord_fitness(self, specimen):
@@ -27,9 +38,9 @@ class Genetic_Client:
 		scores1 = []
 
 		# Tier 3 setup
-		expected = 4
-		sd = 1
-		max_score = utils.norm_pdf(expected, expected, sd)
+		expected = self.expected_note_overlap
+		sd = self.sd_note_overlap
+		max_score = self.max_note_overlap_score
 		scores3 = []
 
 		# Tiers 1 and 3
@@ -66,7 +77,8 @@ class Genetic_Client:
 			count = len(notes_in_col)
 			scores3.append(utils.norm_pdf(count, expected, sd) / max_score)
 
-		multiplier1 = (utils.geometric_mean(scores1) * 2) ** 4
+		specimen.col_chords = col_chords
+		multiplier1 = (utils.geometric_mean(scores1) * 2) ** 5
 		fitness *= multiplier1
 		multiplier3 = utils.geometric_mean(scores3) * 2
 		fitness *= multiplier3
@@ -74,9 +86,9 @@ class Genetic_Client:
 		# Tier 2 (Chord Changing)
 		chord_sequence = utils.compact_chord_cols(col_chords)
 		scores2 = [None] * len(chord_sequence)
-		expected = 4
-		sd = 2
-		max_score = utils.norm_pdf(expected, expected, sd)
+		expected = self.expected_chord_length
+		sd = self.sd_chord_length
+		max_score = self.max_chord_length_score
 		for i in range(len(chord_sequence)):
 			chord = chord_sequence[i]
 			scores2[i] = utils.norm_pdf(chord[1], expected, sd) / max_score
@@ -98,7 +110,7 @@ class Genetic_Client:
 			if count > max_count:
 				max_count = count
 		ratio = max_count / len(chord_sequence)
-		multiplier = (ratio * 2) ** 2
+		multiplier = ratio * 2
 		fitness *= multiplier
 
 		return fitness
@@ -171,7 +183,7 @@ class Genetic_Client:
 
 
 if __name__ == '__main__':
-	gc = Genetic_Client(100)
+	gc = Genetic_Client(150)
 	gc.population[0][0].convert_to_MIDI("../outputs/start.mid")
 	inpt = input("How many generations should I simulate? ")
 	while not inpt == 'done':
@@ -181,7 +193,7 @@ if __name__ == '__main__':
 			gc.darwin()
 		inpt = input("How many generations should I simulate? ")
 	print("Fitness: " + str(gc.best_fitness()))
+	gc.best_individual().populate_random_melody()
 	gc.best_individual().convert_to_MIDI("../outputs/best.mid")
-	print(gc.best_individual().note_count)
 	plt.plot(gc.tops)
 	plt.show()
