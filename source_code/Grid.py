@@ -59,25 +59,32 @@ class Grid:
 				self.add_note(pos, pitch, duration)
 				i += 1
 
-	def populate_random_melody(self):
+	def populate_random_melody(self, lines):
 		pos = 0
-		active_chord = self.col_chords[0]
-		active_scale = utils.get_double_scale(active_chord)
-		scale_index = 7
+
+		current_base_note = None  # the base note of where the slope started
+		x_dist = 0  # how many grid cells we are away from the base node
+		line_index = 0  # indexes into the slopes array
+		last_note = 0
+
 		while pos < self.num_notes:
-			if active_chord is not None:
-				if not self.col_chords[pos] == active_chord:
-					active_chord = self.col_chords[pos]
-					active_scale = utils.get_double_scale(active_chord)
-				duration = random.randint(1, 6)
-				self.add_note(pos, active_scale[scale_index], duration)
-				pos += duration
-				change = random.randint(-3, 3)
-				if scale_index + change < 0 or scale_index + change >= len(active_scale):
-					change = -change
-				scale_index += change
-			else:
-				pos += 1
+			if line_index < len(lines):
+				line = lines[line_index]
+				if x_dist >= line[1]:
+					# switch to next line
+					line_index += 1
+					current_base_note = last_note
+					x_dist = 0
+				else:
+					duration = random.randint(1, 3)
+					slope = line[0]
+					expected_note = slope * x_dist + current_base_note
+					self.add_note(pos, expected_note + random.randint(-2, 2), duration)
+					# self.add_note(pos, expected_note, duration)
+					last_note = expected_note
+
+				x_dist += 1
+			pos += 1
 
 
 	def convert_to_MIDI(self, title):
